@@ -1,18 +1,17 @@
 // @flow
+import type { Element as ReactElement, Node as ReactNode } from "react";
 import React from "react";
 import PropTypes from "prop-types";
 import { DraggableCore } from "react-draggable";
 import { Resizable } from "react-resizable";
-import { perc, setTopLeft, setTransform } from "./utils";
-import classNames from "classnames";
-import type { Element as ReactElement, Node as ReactNode } from "react";
-
 import type {
-  ReactDraggableCallbackData,
   GridDragEvent,
   GridResizeEvent,
-  Position
+  Position,
+  ReactDraggableCallbackData
 } from "./utils";
+import { perc, setTopLeft, setTransform } from "./utils";
+import classNames from "classnames";
 
 type PartialPosition = { top: number, left: number };
 type GridItemCallback<Data: GridDragEvent | GridResizeEvent> = (
@@ -466,29 +465,26 @@ export default class GridItem extends React.Component<Props, State> {
     } = this.props;
 
     const pos = this.calcPosition(x, y, w, h, this.state);
-    const child = React.Children.only(this.props.children);
 
     // Create the child element. We clone the existing element but modify its className and style.
-    let newChild = React.cloneElement(child, {
-      className: classNames(
-        "react-grid-item",
-        child.props.className,
-        this.props.className,
-        {
+    let newChild = (
+      <div
+        className={classNames("react-grid-item", this.props.className, {
           static: this.props.static,
           resizing: Boolean(this.state.resizing),
           "react-draggable": isDraggable,
           "react-draggable-dragging": Boolean(this.state.dragging),
           cssTransforms: useCSSTransforms
-        }
-      ),
-      // We can set the width and height on the child, but unfortunately we can't set the position.
-      style: {
-        ...this.props.style,
-        ...child.props.style,
-        ...this.createStyle(pos)
-      }
-    });
+        })}
+        // We can set the width and height on the child, but unfortunately we can't set the position.
+        style={{
+          ...this.props.style,
+          ...this.createStyle(pos)
+        }}
+      >
+        {this.props.children}
+      </div>
+    );
 
     // Resizable support. This is usually on but the user can toggle it off.
     if (isResizable) newChild = this.mixinResizable(newChild, pos);
